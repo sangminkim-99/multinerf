@@ -48,6 +48,7 @@ def load_dataset(split, train_dir, config):
       'tat_nerfpp': TanksAndTemplesNerfPP,
       'tat_fvs': TanksAndTemplesFVS,
       'dtu': DTU,
+      'omniblender': OmniBlender,
   }
   return dataset_dict[config.dataset_loader](split, train_dir, config)
 
@@ -909,3 +910,31 @@ class DTU(Dataset):
     self.height, self.width = images.shape[1:3]
     self.camtoworlds = camtoworlds[indices]
     self.pixtocams = pixtocams[indices]
+
+class OmniBlender(Dataset):
+  """OmniBlender dataset"""
+  def _load_renderings(self, config):
+    if config.factor != 1:
+      raise ValueError("Downsample for OmniBlender dataset is not supported")
+
+    """Load images from disk."""
+    pose_file = path.join(self.data_dir, f'transform.json')
+    with utils.open_file(pose_file, 'r') as fp:
+      meta = json.load(fp)
+    images = []
+    cams = []
+    for _, frame in enumerate(meta['frames']):
+      image = utils.load_img(os.path.join(self.data_dir, 'images', frame['file_path']))
+      images.append(image)
+      cams.append(np.array(frame['transform_matrix'], dtype=np.float32))
+
+    self.images = np.stack(images, axis=0)
+
+    if self.images.shape[-1] == 4:
+      rgb, alpha = self.images[..., :3], self.images[..., -1:]
+      self.images = rgb * alpha + (1. - alpha)  # Use a white background.
+    self.height, self.width = self.images.shape[1:3]
+    self.camtoworlds = np.stack(cams, axis=0)
+    self.focal = 1
+    self.pixtocams = camera_utils.get_pixtocam(self.focal, self.width,
+                                               self.height)
