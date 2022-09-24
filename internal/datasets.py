@@ -914,7 +914,7 @@ class DTU(Dataset):
 class OmniBlender(Dataset):
   """OmniBlender dataset"""
   def _load_renderings(self, config):
-    if config.factor != 1:
+    if config.factor > 1:
       raise ValueError("Downsample for OmniBlender dataset is not supported")
 
     """Load images from disk."""
@@ -925,6 +925,7 @@ class OmniBlender(Dataset):
     cams = []
     for _, frame in enumerate(meta['frames']):
       image = utils.load_img(os.path.join(self.data_dir, 'images', frame['file_path']))
+      image /= 255.
       images.append(image)
       cams.append(np.array(frame['transform_matrix'], dtype=np.float32))
 
