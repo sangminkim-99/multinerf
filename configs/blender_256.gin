@@ -27,3 +27,5 @@ Config.distortion_loss_mult = 0.
 
 NerfMLP.max_deg_point = 16
 PropMLP.max_deg_point = 16
+
+Config.batch_size = 512

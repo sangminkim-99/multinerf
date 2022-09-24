@@ -29,3 +29,6 @@ NerfMLP.max_deg_point = 16
 PropMLP.max_deg_point = 16
 
 Config.render_camtype = 'pano'
+Config.batch_size = 512
+# Config.lr_init = 0.064
+# Config.lr_final = 0.00064
