@@ -934,8 +934,22 @@ class OmniBlender(Dataset):
     if self.images.shape[-1] == 4:
       rgb, alpha = self.images[..., :3], self.images[..., -1:]
       self.images = rgb * alpha + (1. - alpha)  # Use a white background.
+
+    # Select the split.
+    all_indices = np.arange(self.images.shape[0])
+    indices = {
+        utils.DataSplit.TEST:
+            all_indices[all_indices % 4 == 0],
+        utils.DataSplit.TRAIN:
+            all_indices[all_indices % 4 != 0],
+    }[self.split]
+
     self.height, self.width = self.images.shape[1:3]
     self.camtoworlds = np.stack(cams, axis=0)
     self.focal = 1
     self.pixtocams = camera_utils.get_pixtocam(self.focal, self.width,
                                                self.height)
+    
+    self.images = self.images[indices]
+    self.camtoworlds = self.camtoworlds[indices]
+    # self.pixtocams = self.pixtocams[indices]
