@@ -604,15 +604,11 @@ def pixels_to_rays(
         -xnp.cos(theta) * xnp.cos(phi),
         ], -1) # (H, W, 3)
 
-  # Flip from OpenCV to OpenGL coordinate system.
-  camera_dirs_stacked = matmul(camera_dirs_stacked,
-                               xnp.diag(xnp.array([1., -1., -1.])))
-
-  # Extract 2D image plane (x, y) coordinates.
-  if camtype == ProjectionType.PANO:
-    imageplane = xnp.zeros_like(camera_dirs_stacked[0, ..., :2])
-  else:
-    imageplane = camera_dirs_stacked[0, ..., :2]
+  if camtype is not ProjectionType.PANO:
+    # Flip from OpenCV to OpenGL coordinate system.
+    camera_dirs_stacked = matmul(camera_dirs_stacked,
+                                xnp.diag(xnp.array([1., -1., -1.])))
+  imageplane = camera_dirs_stacked[0, ..., :2]
 
   # Apply camera rotation matrices.
   directions_stacked = mat_vec_mul(camtoworlds[..., :3, :3],

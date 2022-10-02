@@ -38,6 +38,7 @@ import sys
 sys.path.insert(0,'internal/pycolmap')
 sys.path.insert(0,'internal/pycolmap/pycolmap')
 import pycolmap
+from scipy.spatial.transform import Rotation as R
 
 
 def load_dataset(split, train_dir, config):
@@ -49,6 +50,7 @@ def load_dataset(split, train_dir, config):
       'tat_fvs': TanksAndTemplesFVS,
       'dtu': DTU,
       'omniblender': OmniBlender,
+      'egocentric': EgocentricVideo,
   }
   return dataset_dict[config.dataset_loader](split, train_dir, config)
 
@@ -934,6 +936,101 @@ class OmniBlender(Dataset):
     if self.images.shape[-1] == 4:
       rgb, alpha = self.images[..., :3], self.images[..., -1:]
       self.images = rgb * alpha + (1. - alpha)  # Use a white background.
+
+    # Select the split.
+    all_indices = np.arange(self.images.shape[0])
+    indices = {
+        utils.DataSplit.TEST:
+            all_indices[all_indices % 4 == 0][:3],
+        utils.DataSplit.TRAIN:
+            all_indices[all_indices % 4 != 0][:20],
+    }[self.split]
+
+    self.height, self.width = self.images.shape[1:3]
+    self.camtoworlds = np.stack(cams, axis=0)
+    self.focal = 1
+    self.pixtocams = np.array([
+      [1./self.width, 0, 0],
+      [0, 1./self.height, 0],
+      [0, 0, 1]
+    ])
+    
+    self.images = self.images[indices]
+    self.camtoworlds = self.camtoworlds[indices]
+    # self.pixtocams = self.pixtocams[indices]
+
+    self.camtype = camera_utils.ProjectionType.PANO
+
+class EgocentricVideo(Dataset):
+  """Egocentric dataset"""
+  def _load_renderings(self, config):
+    if config.factor > 1:
+      raise ValueError("Downsample for OmniBlender dataset is not supported")
+
+    img_dir = os.path.join(self.root_dir, 'imgs')
+
+    all_img_files = os.listdir(img_dir)
+    if 'mask.png' in all_img_files:
+        all_img_files.remove('mask.png')
+    img_files = [os.path.join(img_dir, f) for f in sorted(all_img_files, key=lambda fname: int(fname.split('.')[0])) if f.endswith('.png')]
+
+    """Load images from disk."""
+    pose_file = path.join(self.data_dir, 'output_dir', 'colmap', 'images.txt')
+    poses_dict = {}
+    i = 0
+    rays2cam = np.array([
+            [1., 0., 0., 0.],
+            [0.,-1., 0., 0.],
+            [0., 0.,-1., 0.],
+            [0., 0., 0., 1.]
+            ])
+
+    world_align = np.array([
+            [1., 0., 0., 0.], 
+            [0., 0., 1., 0.],
+            [0., -1., 0., 0.],
+            [0., 0., 0., 1.]
+            ])
+
+    with open(pose_file) as f:
+      lines = f.readlines()[4:] # discard file info
+          
+      for line in lines:
+        tokens = line.split()
+        if tokens[0] == '#':
+            continue
+        i += 1
+        if i % 2 == 0:
+            continue
+
+        quat, t, img_fname = np.array(list(map(float, tokens[1:5]))), np.array(list(map(float, tokens[5:8]))), tokens[9]
+        quat = quat[[1, 2, 3, 0]]
+
+        rot = R.from_quat(quat).as_matrix()
+        w2c = np.concatenate((rot, t[:,np.newaxis]), axis=1)
+        w2c = np.concatenate((w2c, [[0,0,0,1]]), axis=0)
+        c2w = np.linalg.inv(w2c)
+
+        poses_dict[img_fname] = world_align @ c2w @ rays2cam
+
+    images = []
+    cams = []
+    for img_fname in img_files:
+      # read image
+      img = Image.open(img_fname)
+      if self.downsample!=1.0:
+          img = img.resize(self.img_wh_origin, Image.LANCZOS)
+      img = self.transform(img)  # (3, h, w)
+      img = img[:, int(self.roi[0] * h):int(self.roi[1] * h), int(self.roi[2] * w):int(self.roi[3] * w)]
+      img = img.reshape(img.shape[0], -1).permute(1, 0)  # (h*w, 3) RGB
+      if img.shape[-1] == 4:
+          img = img[:, :3] * img[:, -1:] + (1 - img[:, -1:])  # blend A to RGB
+      images.append(img)
+
+      c2w = poses_dict[os.path.basename(img_fname)]
+      cams.append(c2w)
+
+    self.images = np.stack(images, axis=0)
 
     # Select the split.
     all_indices = np.arange(self.images.shape[0])
