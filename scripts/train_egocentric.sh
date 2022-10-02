@@ -16,14 +16,14 @@
 # export CUDA_VISIBLE_DEVICES=0
 
 SCENE=ddp_1
-EXPERIMENT=omniblender
+EXPERIMENT=egocentric
 LOG_DIR=./log
 DATA_DIR=./data/EgocentricVideos/Ricoh
 CHECKPOINT_DIR="$LOG_DIR"/"$EXPERIMENT"/"$SCENE"
 
 rm "$CHECKPOINT_DIR"/*
 python -m train \
-  --gin_configs=configs/omniblender_256.gin \
+  --gin_configs=configs/egocentric_256.gin \
   --gin_bindings="Config.data_dir = '${DATA_DIR}/${SCENE}'" \
   --gin_bindings="Config.checkpoint_dir = '${CHECKPOINT_DIR}'" \
   --logtostderr

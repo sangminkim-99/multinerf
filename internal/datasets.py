@@ -943,7 +943,7 @@ class OmniBlender(Dataset):
         utils.DataSplit.TEST:
             all_indices[all_indices % 4 == 0][:3],
         utils.DataSplit.TRAIN:
-            all_indices[all_indices % 4 != 0][:20],
+            all_indices[all_indices % 4 != 0],
     }[self.split]
 
     self.height, self.width = self.images.shape[1:3]
@@ -967,22 +967,34 @@ class EgocentricVideo(Dataset):
     if config.factor > 1:
       raise ValueError("Downsample for OmniBlender dataset is not supported")
 
-    img_dir = os.path.join(self.root_dir, 'imgs')
+    img_dir = os.path.join(self.data_dir, 'imgs')
 
     all_img_files = os.listdir(img_dir)
+
+    # Select the split.
+    all_indices = np.arange(len(all_img_files))
+    indices = {
+        utils.DataSplit.TEST:
+            all_indices[all_indices % 4 == 0][:3],
+        utils.DataSplit.TRAIN:
+            all_indices[all_indices % 4 != 0][20:70],
+    }[self.split]
+
     if 'mask.png' in all_img_files:
         all_img_files.remove('mask.png')
     img_files = [os.path.join(img_dir, f) for f in sorted(all_img_files, key=lambda fname: int(fname.split('.')[0])) if f.endswith('.png')]
+    img_files = [img_files[i] for i in indices]
 
     """Load images from disk."""
-    pose_file = path.join(self.data_dir, 'output_dir', 'colmap', 'images.txt')
+    pose_file = os.path.join(self.data_dir, 'output_dir', 'colmap', 'images.txt')
     poses_dict = {}
     i = 0
+    
     rays2cam = np.array([
             [1., 0., 0., 0.],
             [0.,-1., 0., 0.],
             [0., 0.,-1., 0.],
-            [0., 0., 0., 1.]
+            [0, 0., 0., 1.]
             ])
 
     world_align = np.array([
@@ -1017,29 +1029,14 @@ class EgocentricVideo(Dataset):
     cams = []
     for img_fname in img_files:
       # read image
-      img = Image.open(img_fname)
-      if self.downsample!=1.0:
-          img = img.resize(self.img_wh_origin, Image.LANCZOS)
-      img = self.transform(img)  # (3, h, w)
-      img = img[:, int(self.roi[0] * h):int(self.roi[1] * h), int(self.roi[2] * w):int(self.roi[3] * w)]
-      img = img.reshape(img.shape[0], -1).permute(1, 0)  # (h*w, 3) RGB
-      if img.shape[-1] == 4:
-          img = img[:, :3] * img[:, -1:] + (1 - img[:, -1:])  # blend A to RGB
-      images.append(img)
-
-      c2w = poses_dict[os.path.basename(img_fname)]
-      cams.append(c2w)
+      image = utils.load_img(img_fname)
+      image /= 255.
+      images.append(image)
+      # img = img[:, int(self.roi[0] * h):int(self.roi[1] * h), int(self.roi[2] * w):int(self.roi[3] * w)]
+      # img = img.reshape(img.shape[0], -1).permute(1, 0)  # (h*w, 3) RGB
+      cams.append(poses_dict[os.path.basename(img_fname)])
 
     self.images = np.stack(images, axis=0)
-
-    # Select the split.
-    all_indices = np.arange(self.images.shape[0])
-    indices = {
-        utils.DataSplit.TEST:
-            all_indices[all_indices % 4 == 0][:3],
-        utils.DataSplit.TRAIN:
-            all_indices[all_indices % 4 != 0][:20],
-    }[self.split]
 
     self.height, self.width = self.images.shape[1:3]
     self.camtoworlds = np.stack(cams, axis=0)
@@ -1050,8 +1047,8 @@ class EgocentricVideo(Dataset):
       [0, 0, 1]
     ])
     
-    self.images = self.images[indices]
-    self.camtoworlds = self.camtoworlds[indices]
+    # self.images = self.images[indices]
+    # self.camtoworlds = self.camtoworlds[indices]
     # self.pixtocams = self.pixtocams[indices]
 
     self.camtype = camera_utils.ProjectionType.PANO
