@@ -515,6 +515,7 @@ class ProjectionType(enum.Enum):
   """Camera projection type (standard perspective pinhole or fisheye model)."""
   PERSPECTIVE = 'perspective'
   FISHEYE = 'fisheye'
+  PANO = 'pano'
 
 
 def pixels_to_rays(
@@ -593,12 +594,25 @@ def pixels_to_rays(
         xnp.cos(theta),
     ], axis=-1)
 
+  elif camtype == ProjectionType.PANO:
+    phi = (1 - 2 * camera_dirs_stacked[..., 0]) * np.pi       # longitude (pi, -pi)
+    theta = (1 - 2 * camera_dirs_stacked[..., 1]) * np.pi/2   # latitude (pi/2, -pi/2)
+
+    camera_dirs_stacked = xnp.stack([
+        -xnp.cos(theta) * xnp.sin(phi),
+        xnp.sin(theta),
+        -xnp.cos(theta) * xnp.cos(phi),
+        ], -1) # (H, W, 3)
+
   # Flip from OpenCV to OpenGL coordinate system.
   camera_dirs_stacked = matmul(camera_dirs_stacked,
                                xnp.diag(xnp.array([1., -1., -1.])))
 
   # Extract 2D image plane (x, y) coordinates.
-  imageplane = camera_dirs_stacked[0, ..., :2]
+  if camtype == ProjectionType.PANO:
+    imageplane = xnp.zeros_like(camera_dirs_stacked[0, ..., :2])
+  else:
+    imageplane = camera_dirs_stacked[0, ..., :2]
 
   # Apply camera rotation matrices.
   directions_stacked = mat_vec_mul(camtoworlds[..., :3, :3],

@@ -939,17 +939,22 @@ class OmniBlender(Dataset):
     all_indices = np.arange(self.images.shape[0])
     indices = {
         utils.DataSplit.TEST:
-            all_indices[all_indices % 4 == 0],
+            all_indices[all_indices % 4 == 0][:3],
         utils.DataSplit.TRAIN:
-            all_indices[all_indices % 4 != 0],
+            all_indices[all_indices % 4 != 0][:20],
     }[self.split]
 
     self.height, self.width = self.images.shape[1:3]
     self.camtoworlds = np.stack(cams, axis=0)
     self.focal = 1
-    self.pixtocams = camera_utils.get_pixtocam(self.focal, self.width,
-                                               self.height)
+    self.pixtocams = np.array([
+      [1./self.width, 0, 0],
+      [0, 1./self.height, 0],
+      [0, 0, 1]
+    ])
     
     self.images = self.images[indices]
     self.camtoworlds = self.camtoworlds[indices]
     # self.pixtocams = self.pixtocams[indices]
+
+    self.camtype = camera_utils.ProjectionType.PANO
