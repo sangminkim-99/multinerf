@@ -1025,6 +1025,21 @@ class EgocentricVideo(Dataset):
 
         poses_dict[img_fname] = world_align @ c2w @ rays2cam
 
+   
+    cam_center = np.zeros(3)
+    for pose in poses_dict.values():
+        cam_center += pose[:3, 3]
+    cam_center /= len(poses_dict)
+    
+    dist = 0
+    for pose in poses_dict.values():
+        dist += np.sqrt(((pose[:3, 3] - cam_center) ** 2).sum())
+
+    dist /= len(poses_dict)
+
+    for pose in poses_dict.values():
+        pose[:3, 3] = (pose[:3, 3] - cam_center) / dist 
+
     images = []
     cams = []
     for img_fname in img_files:
