@@ -17,3 +17,7 @@ NerfMLP.net_depth = 8
 NerfMLP.net_width = 1024
 NerfMLP.disable_density_normals = True
 
+Config.batch_size = 1024
+
+Config.lr_init = 0.000125
+Config.lr_final = 0.00000125

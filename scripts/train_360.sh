@@ -13,13 +13,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-export CUDA_VISIBLE_DEVICES=0
+# export CUDA_VISIBLE_DEVICES=0
 
-SCENE=gardenvase
+SCENE=garden
 EXPERIMENT=360
-DATA_DIR=/usr/local/google/home/barron/tmp/nerf_data/nerf_real_360
-CHECKPOINT_DIR=/usr/local/google/home/barron/tmp/nerf_results/"$EXPERIMENT"/"$SCENE"
-
+LOG_DIR=./log
+DATA_DIR=./data/360_v2
+CHECKPOINT_DIR="$LOG_DIR"/"$EXPERIMENT"/"$SCENE"
 # If running one of the indoor scenes, add
 # --gin_bindings="Config.factor = 2"
 

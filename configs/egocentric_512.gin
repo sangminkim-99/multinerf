@@ -1,7 +1,7 @@
 Config.dataset_loader = 'egocentric'
 Config.batching = 'single_image'
 Config.near = 0.01
-Config.far = 100.0
+Config.far = 1e6
 Config.eval_render_interval = 5
 Config.data_loss_type = 'mse'
 Config.adam_eps = 1e-8

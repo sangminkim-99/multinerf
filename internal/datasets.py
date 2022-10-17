@@ -975,9 +975,9 @@ class EgocentricVideo(Dataset):
     all_indices = np.arange(len(all_img_files))
     indices = {
         utils.DataSplit.TEST:
-            all_indices[all_indices % 4 == 0][:3],
+            all_indices[all_indices % 2 != 0][:3],
         utils.DataSplit.TRAIN:
-            all_indices[all_indices % 4 != 0][20:70],
+            all_indices[all_indices % 2 == 0][20:70],
     }[self.split]
 
     if 'mask.png' in all_img_files:

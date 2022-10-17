@@ -42,6 +42,11 @@ TIME_PRECISION = 1000  # Internally represent integer times in milliseconds.
 
 
 def main(unused_argv):
+  import os
+  os.environ['XLA_PYTHON_CLIENT_PREALLOCATE'] ='false'
+  os.environ['XLA_PYTHON_CLIENT_ALLOCATOR']='platform'
+  os.environ['TF_FORCE_GPU_ALLOW_GROWTH'] = 'true'
+
   rng = random.PRNGKey(20200823)
   # Shift the numpy random seed by host_id() to shuffle data loaded by different
   # hosts.
