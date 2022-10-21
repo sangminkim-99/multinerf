@@ -2,7 +2,7 @@
 # usage: bash train.sh gpu_id scene_file.txt
 #       ex. bash train.sh 1,2,3 scenes.txt
 
-filename=$3
+filename=$2
 scene_names=()
 while read line; do
     # read each line
@@ -43,11 +43,17 @@ do
     done
 
     empty_gpu=${empty_gpu[0]}
-    export CUDA_VISIBLE_DIVICES=$empty_gpu
+    ###########################
+    ##### GPU Assignment ######
+    ###########################
+    export CUDA_VISIBLE_DEVICES="$empty_gpu,$((empty_gpu + 1))"
     running_gpu_ids+=($empty_gpu)
 
+    ###########################
+    #######  Main Code  #######
+    ###########################
     python -m train --gin_configs=configs/$scene_name.gin --logtostderr & # train on background
     pids+=($!)
 
-    echo "${scene_name} is running on gpu ${empty_gpu} with pid ${!}"
+    echo "${scene_name} is running on gpu ${CUDA_VISIBLE_DEVICES} with pid ${!}"
 done

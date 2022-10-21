@@ -1,0 +1,11 @@
+omniblender/archiviz-flat
+omniblender/barbershop
+omniblender/classroom
+omniblender/restroom
+omniblender/bistro_bike
+omniblender/bistro_square
+omniblender/fisher-hut
+omniblender/lone_monk
+omniblender/LOU
+omniblender/pavilion_midday_chiar
+omniblender/pavilion_midday_pond

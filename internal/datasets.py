@@ -941,14 +941,14 @@ class OmniBlender(Dataset):
     i_train = []
     i_test = []
 
-    with open(os.path.join(basedir, 'train.txt')) as train_file:
+    with open(os.path.join(self.data_dir, 'train.txt')) as train_file:
         while True:
             line = train_file.readline()
             if not line:
                 break
             i_train.append(int(line.strip()))
 
-    with open(os.path.join(basedir, 'test.txt')) as test_file:
+    with open(os.path.join(self.data_dir, 'test.txt')) as test_file:
         while True:
             line = test_file.readline()
             if not line:
@@ -991,14 +991,14 @@ class EgocentricVideo(Dataset):
     fname_train = []
     fname_test = []
 
-    with open(os.path.join(basedir, 'train.txt')) as train_file:
+    with open(os.path.join(self.data_dir, 'train.txt')) as train_file:
         while True:
             line = train_file.readline()
             if not line:
                 break
             fname_train.append(line.strip() + '.png')
 
-    with open(os.path.join(basedir, 'test.txt')) as test_file:
+    with open(os.path.join(self.data_dir, 'test.txt')) as test_file:
         while True:
             line = test_file.readline()
             if not line:

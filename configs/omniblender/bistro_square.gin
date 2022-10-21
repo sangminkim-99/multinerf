@@ -1,32 +1,26 @@
 Config.dataset_loader = 'omniblender'
-Config.batching = 'single_image'
+# Config.batching = 'single_image'
 Config.near = 0.1
 Config.far = 300.0
-Config.eval_render_interval = 5
-Config.data_loss_type = 'mse'
-Config.adam_eps = 1e-8
+
 Config.data_dir = './data/OmniBlender/bistro_square'
 Config.checkpoint_dir = './log/omniblender/bistro_square'
-
-Model.num_levels = 2
-Model.num_prop_samples = 128
-Model.num_nerf_samples = 32
-
-PropMLP.net_depth = 4
-PropMLP.net_width = 256
-PropMLP.disable_density_normals = True
-PropMLP.disable_rgb = True
-
-NerfMLP.net_depth = 8
-NerfMLP.net_width = 512
-NerfMLP.disable_density_normals = True
-
-Config.distortion_loss_mult = 0.
-
-NerfMLP.max_deg_point = 16
-PropMLP.max_deg_point = 16
 
 Config.render_camtype = 'pano'
 Config.batch_size = 4096
 Config.lr_init = 0.0005
 Config.lr_final = 0.000005
+
+Model.raydist_fn = @jnp.reciprocal
+Model.opaque_background = True
+
+PropMLP.warp_fn = @coord.contract
+PropMLP.net_depth = 4
+PropMLP.net_width = 256
+PropMLP.disable_density_normals = True
+PropMLP.disable_rgb = True
+
+NerfMLP.warp_fn = @coord.contract
+NerfMLP.net_depth = 8
+NerfMLP.net_width = 1024
+NerfMLP.disable_density_normals = True
