@@ -938,13 +938,27 @@ class OmniBlender(Dataset):
       self.images = rgb * alpha + (1. - alpha)  # Use a white background.
 
     # Select the split.
-    all_indices = np.arange(self.images.shape[0])
-    indices = {
-        utils.DataSplit.TEST:
-            all_indices[all_indices % 4 == 0][:3],
-        utils.DataSplit.TRAIN:
-            all_indices[all_indices % 4 != 0],
-    }[self.split]
+    i_train = []
+    i_test = []
+
+    with open(os.path.join(basedir, 'train.txt')) as train_file:
+        while True:
+            line = train_file.readline()
+            if not line:
+                break
+            i_train.append(int(line.strip()))
+
+    with open(os.path.join(basedir, 'test.txt')) as test_file:
+        while True:
+            line = test_file.readline()
+            if not line:
+                break
+            i_test.append(int(line.strip()))
+
+    if self.split == utils.DataSplit.TEST:
+      indices = np.array(i_test)
+    elif self.split == utils.DataSplit.TRAIN:
+      indices = np.array(i_train)
 
     self.height, self.width = self.images.shape[1:3]
     self.camtoworlds = np.stack(cams, axis=0)
@@ -970,18 +984,35 @@ class EgocentricVideo(Dataset):
     img_dir = os.path.join(self.data_dir, 'imgs')
 
     all_img_files = os.listdir(img_dir)
-
-    # Select the split.
-    all_indices = np.arange(len(all_img_files))
-    indices = {
-        utils.DataSplit.TEST:
-            all_indices[all_indices % 2 != 0][:3],
-        utils.DataSplit.TRAIN:
-            all_indices[all_indices % 2 == 0][20:70],
-    }[self.split]
-
     if 'mask.png' in all_img_files:
         all_img_files.remove('mask.png')
+
+    # Select the split.
+    fname_train = []
+    fname_test = []
+
+    with open(os.path.join(basedir, 'train.txt')) as train_file:
+        while True:
+            line = train_file.readline()
+            if not line:
+                break
+            fname_train.append(line.strip() + '.png')
+
+    with open(os.path.join(basedir, 'test.txt')) as test_file:
+        while True:
+            line = test_file.readline()
+            if not line:
+                break
+            fname_test.append(line.strip() + '.png')
+    
+    indices = []
+    if self.split == utils.DataSplit.TEST:
+      for f_test in fname_test:
+        indices.append(all_img_files.index(f_test))
+    elif self.split == utils.DataSplit.TRAIN:
+      for f_train in fname_train:
+        indices.append(all_img_files.index(f_train))
+
     img_files = [os.path.join(img_dir, f) for f in sorted(all_img_files, key=lambda fname: int(fname.split('.')[0])) if f.endswith('.png')]
     img_files = [img_files[i] for i in indices]
 
