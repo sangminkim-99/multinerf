@@ -1,7 +1,7 @@
 Config.dataset_loader = 'omniblender'
 # Config.batching = 'single_image'
-Config.near = 0.01
-Config.far = 50.0
+Config.near = 0.2
+Config.far = 1e6
 
 Config.data_dir = './data/OmniBlender/lone_monk'
 Config.checkpoint_dir = './log/omniblender/lone_monk'

@@ -24,7 +24,7 @@ do
     # if there is no available gpu, then wait until any process finishes
     while [ ${#gpu_ids[@]} -eq ${#running_gpu_ids[@]} ]
     do
-        sleep 1
+        sleep 60
         for i in ${!pids[@]}
         do
             # check i-th job is finished
@@ -35,6 +35,10 @@ do
             fi
         done
     done
+
+    ###########################
+    ##### GPU Assignment ######
+    ###########################
     # train on the empty gpu
     empty_gpu=("${gpu_ids[@]}")
     for running_gpu in ${running_gpu_ids[@]}
@@ -43,10 +47,22 @@ do
     done
 
     empty_gpu=${empty_gpu[0]}
-    ###########################
-    ##### GPU Assignment ######
-    ###########################
-    export CUDA_VISIBLE_DEVICES="$empty_gpu,$((empty_gpu + 1))"
+    case $empty_gpu in
+        # TITAN RTX (24GB)
+        "1"|"6")
+        export CUDA_VISIBLE_DEVICES="$empty_gpu" 
+        ;;
+        # RTX 2080 Ti (11GB)
+        "0")
+        export CUDA_VISIBLE_DEVICES="0,2" 
+        ;;
+        "3")
+        export CUDA_VISIBLE_DEVICES="3,4" 
+        ;;
+        "5")
+        export CUDA_VISIBLE_DEVICES="5,7" 
+        ;;
+    esac
     running_gpu_ids+=($empty_gpu)
 
     ###########################

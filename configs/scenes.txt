@@ -7,5 +7,5 @@ omniblender/bistro_square
 omniblender/fisher-hut
 omniblender/lone_monk
 omniblender/LOU
-omniblender/pavilion_midday_chiar
+omniblender/pavilion_midday_chair
 omniblender/pavilion_midday_pond

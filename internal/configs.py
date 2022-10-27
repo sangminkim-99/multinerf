@@ -81,7 +81,7 @@ class Config:
   max_steps: int = 100000  # The number of optimization steps.
   early_exit_steps: Optional[int] = None  # Early stopping, for debugging.
   checkpoint_every: int = 10000  # The number of steps to save a checkpoint.
-  print_every: int = 1000000  # The number of steps between reports to tensorboard.
+  print_every: int = 100  # The number of steps between reports to tensorboard.
   train_render_every: int = 1000000  # Steps between test set renders when training
   cast_rays_in_train_step: bool = False  # If True, compute rays in train step.
   data_loss_type: str = 'charb'  # What kind of loss to use ('mse' or 'charb').
@@ -137,6 +137,7 @@ class Config:
   render_job_id: int = 0  # Render job id.
   render_num_jobs: int = 1  # Total number of render jobs.
   render_resolution: Optional[Tuple[int, int]] = None  # Render resolution, as
+  render_step: int = 10000,
   # (width, height).
   render_focal: Optional[float] = None  # Render focal length.
   render_camtype: Optional[str] = None  # 'perspective', 'fisheye', or 'pano'.

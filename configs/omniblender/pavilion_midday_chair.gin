@@ -1,7 +1,7 @@
 Config.dataset_loader = 'omniblender'
 # Config.batching = 'single_image'
-Config.near = 0.1
-Config.far = 50.0
+Config.near = 0.2
+Config.far = 1e6
 
 Config.data_dir = './data/OmniBlender/pavilion_midday_chair'
 Config.checkpoint_dir = './log/omniblender/pavilion_midday_chair'

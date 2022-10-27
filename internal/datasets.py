@@ -962,6 +962,12 @@ class OmniBlender(Dataset):
 
     self.height, self.width = self.images.shape[1:3]
     self.camtoworlds = np.stack(cams, axis=0)
+   
+    cam_center = self.camtoworlds[:, :3, 3].mean(0)
+    norm_coeff = 1. / (self.camtoworlds[:, :3, 3] - cam_center).max()
+    
+    self.camtoworlds[:, :3, 3] = (self.camtoworlds[:, :3, 3] - cam_center) * norm_coeff
+
     self.focal = 1
     self.pixtocams = np.array([
       [1./self.width, 0, 0],

@@ -1,0 +1,5 @@
+egocentric/bricks
+egocentric/bridge
+egocentric/bridge_under
+egocentric/cabin
+egocentric/cat_tower

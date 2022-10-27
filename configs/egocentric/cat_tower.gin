@@ -1,6 +1,6 @@
 Config.dataset_loader = 'egocentric'
-Config.near = 0.1
-Config.far = 30.0
+Config.near = 0.2
+Config.far = 1e6
 
 Config.data_dir = './data/Ricoh/cat_tower'
 Config.checkpoint_dir = './log/egocentric/cat_tower'
